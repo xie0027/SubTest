@@ -3,14 +3,14 @@ name: Sync Latest Pre-release to pre Branch
 on:
   workflow_dispatch:
   schedule:
-  - cron: "0 2 * * 2"
+    - cron: "0 2 * * 2"
 
 jobs:
   update-pre-branch:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # 允许推送到仓库
+      contents: write
 
     steps:
       - name: Checkout pre 分支
@@ -22,22 +22,33 @@ jobs:
       - name: 安装 jq 和 wget
         run: sudo apt-get update && sudo apt-get install -y jq wget
 
-      - name: 下载最新的 Pre-release 第一个文件到根目录并重命名为 _worker.js
+      - name: 获取最新 pre-release 的下载链接和版本号
+        id: fetch_release
         run: |
-          # 获取最新 Pre-release 中的第一个下载链接
-          url=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases \
-            | jq -r 'map(select(.prerelease))[0].assets[0].browser_download_url')
-          
-          echo "下载第一个文件: $url"
-          wget "$url" -O _worker.js  # 直接将文件下载到根目录，并重命名为 _worker.js
+          api_data=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases)
+          url=$(echo "$api_data" | jq -r 'map(select(.prerelease))[0].assets[0].browser_download_url')
+          version=$(echo "$api_data" | jq -r 'map(select(.prerelease))[0].tag_name')
+
+          echo "url=$url" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: 下载 _worker.js 和写入版本号
+        run: |
+          wget -q "${{ steps.fetch_release.outputs.url }}" -O _worker.js
+          echo "${{ steps.fetch_release.outputs.version }}" > _version.txt
 
       - name: 设置 Git 身份
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 提交并推送更改到 pre 分支
+      - name: 检查是否有更改并提交
         run: |
-          git add _worker.js
-          git commit -m "Update from latest pre-release of BPB-Worker-Panel" || echo "No changes"
-          git push origin pre
+          if ! git diff --quiet; then
+            echo "检测到文件变化，准备提交"
+            git add _worker.js _version.txt
+            git commit -m "Update _worker.js and version to ${{ steps.fetch_release.outputs.version }}"
+            git push origin pre
+          else
+            echo "没有变化，跳过提交"
+          fi
