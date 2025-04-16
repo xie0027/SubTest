@@ -6,11 +6,16 @@ on:
 jobs:
   update-pre-branch:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # ✅ 允许 push 到仓库
+
     steps:
-      - name: Checkout 当前仓库的 pre 分支
+      - name: Checkout pre 分支
         uses: actions/checkout@v3
         with:
           ref: pre
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 安装 jq 和 wget
         run: sudo apt-get update && sudo apt-get install -y jq wget
@@ -28,14 +33,17 @@ jobs:
           done
           cd ..
 
-      - name: 移动文件到仓库根目录（或你想要的路径）
+      - name: 复制文件到仓库根目录
         run: |
           cp -r latest_release/* ./
 
-      - name: 提交更改到 pre 分支
+      - name: 设置 Git 身份
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 提交并推送更改到 pre 分支
+        run: |
           git add .
-          git commit -m "Update from latest pre-release of BPB-Worker-Panel" || echo "No changes to commit"
+          git commit -m "Update from latest pre-release of BPB-Worker-Panel" || echo "No changes"
           git push origin pre
