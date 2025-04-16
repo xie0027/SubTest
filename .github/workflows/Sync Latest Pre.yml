@@ -2,6 +2,8 @@ name: Sync Latest Pre-release to pre Branch
 
 on:
   workflow_dispatch:
+  schedule:
+  - cron: "0 2 * * 2"
 
 jobs:
   update-pre-branch:
