@@ -36,6 +36,6 @@ jobs:
 
       - name: 提交并推送更改到 pre 分支
         run: |
-          git add _work.js
+          git add _worker.js
           git commit -m "Update from latest pre-release of BPB-Worker-Panel" || echo "No changes"
           git push origin pre
