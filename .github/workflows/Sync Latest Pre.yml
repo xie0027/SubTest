@@ -20,14 +20,14 @@ jobs:
       - name: 安装 jq 和 wget
         run: sudo apt-get update && sudo apt-get install -y jq wget
 
-      - name: 下载最新的 Pre-release 第一个文件到根目录并重命名为 _work.js
+      - name: 下载最新的 Pre-release 第一个文件到根目录并重命名为 _worker.js
         run: |
           # 获取最新 Pre-release 中的第一个下载链接
           url=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases \
             | jq -r 'map(select(.prerelease))[0].assets[0].browser_download_url')
           
           echo "下载第一个文件: $url"
-          wget "$url" -O _work.js  # 直接将文件下载到根目录，并重命名为 _work.js
+          wget "$url" -O _worker.js  # 直接将文件下载到根目录，并重命名为 _worker.js
 
       - name: 设置 Git 身份
         run: |
