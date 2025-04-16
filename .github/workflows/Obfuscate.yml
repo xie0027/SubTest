@@ -1,12 +1,13 @@
 name: Build and Obfuscate BPB Panel
 
 on:
-  push:
-    branches:
-      - main
-  schedule:
+  workflow_dispatch:
+  #push:
+    #branches:
+      #- main
+  #schedule:
     # 每天凌晨1:00运行
-    - cron: "0 5 * * 2"
+    #- cron: "0 5 * * 2"
 
 permissions:
   contents: write
