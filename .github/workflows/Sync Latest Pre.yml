@@ -51,3 +51,4 @@ jobs:
             git push origin pre
           else
             echo "没有变化，跳过提交"
+          fi
