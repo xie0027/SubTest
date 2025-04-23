@@ -22,20 +22,38 @@ jobs:
       - name: 安装 jq 和 wget
         run: sudo apt-get update && sudo apt-get install -y jq wget
 
-      - name: 获取最新 release 的下载链接和版本号
+      - name: 获取最新 release 的下载链接、版本号和备注
         id: fetch_release
         run: |
           api_data=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases)
-          url=$(echo "$api_data" | jq -r 'map(select(.prerelease == false))[0].assets[0].browser_download_url')
+          url=$(echo "$api_data" | jq -r 'map(select(.prerelease == false))[0].assets[] | select(.name == "_worker.js") | .browser_download_url')
           version=$(echo "$api_data" | jq -r 'map(select(.prerelease == false))[0].tag_name')
+          body=$(echo "$api_data" | jq -r 'map(select(.prerelease == false))[0].body')
           echo "url=$url" >> $GITHUB_OUTPUT
           echo "version=$version" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 检查是否为新版本
+        id: check_version
+        run: |
+          if [[ -f _version.txt ]] && [[ "$(cat _version.txt)" == "${{ steps.fetch_release.outputs.version }}" ]]; then
+            echo "is_new=false" >> $GITHUB_OUTPUT
+          else
+            echo "is_new=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: 下载 _worker.js 和写入版本号及更新日志
+        if: steps.check_version.outputs.is_new == 'true'
         run: |
           wget -q "${{ steps.fetch_release.outputs.url }}" -O _worker.js
           echo "${{ steps.fetch_release.outputs.version }}" > _version.txt
-          echo "Version: ${{ steps.fetch_release.outputs.version }} - Updated at $(date -u)" >> update.log
+
+          echo -e "\n---" >> update.log
+          echo "Version: ${{ steps.fetch_release.outputs.version }}" >> update.log
+          echo "Updated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> update.log
+          echo -e "Release Notes:\n${{ steps.fetch_release.outputs.body }}" >> update.log
 
       - name: 设置 Git 身份
         run: |
@@ -43,6 +61,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: 检查是否有更改并提交
+        if: steps.check_version.outputs.is_new == 'true'
         run: |
           if ! git diff --quiet; then
             echo "检测到文件变化，准备提交"
