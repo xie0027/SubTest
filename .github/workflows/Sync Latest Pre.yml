@@ -44,16 +44,28 @@ jobs:
             echo "is_new=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: 调试 release 内容
+        if: steps.check_version.outputs.is_new == 'true'
+        run: |
+          echo "URL: ${{ steps.fetch_release.outputs.url }}"
+          echo "VERSION: ${{ steps.fetch_release.outputs.version }}"
+          echo "BODY:"
+          echo "${{ steps.fetch_release.outputs.body }}"
+
       - name: 下载 _worker.js 和写入版本号及更新日志
         if: steps.check_version.outputs.is_new == 'true'
         run: |
           wget -q "${{ steps.fetch_release.outputs.url }}" -O _worker.js
           echo "${{ steps.fetch_release.outputs.version }}" > _version.txt
 
-          echo -e "\n---" >> update.log
-          echo "Version: ${{ steps.fetch_release.outputs.version }}" >> update.log
-          echo "Updated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> update.log
-          echo -e "Release Notes:\n${{ steps.fetch_release.outputs.body }}" >> update.log
+          cat <<EOF >> update.log
+
+---
+Version: ${{ steps.fetch_release.outputs.version }}
+Updated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+Release Notes:
+${{ steps.fetch_release.outputs.body }}
+EOF
 
       - name: 设置 Git 身份
         run: |
