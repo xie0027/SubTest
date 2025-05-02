@@ -1,0 +1,11 @@
+
+---
+Version: v3.2.5
+Updated at: 2025-05-02 18:16:06 UTC
+Release Notes:
+## ⚙️ Bug fixes and Improvements
+- Xray VLESS, Trojan UDP leak bug fix.
+- Panle bug fixes
+- Chain proxy bug fix
+- Optimized build setup
+- Refactor and some other bug fixes
