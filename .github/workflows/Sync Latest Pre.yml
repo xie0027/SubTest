@@ -79,3 +79,4 @@ jobs:
             echo "🚀 检测到文件变化，准备提交"
             git commit -m "Update _worker.js to version ${{ steps.fetch_release.outputs.version }} with changelog"
             git push origin pre
+          fi
