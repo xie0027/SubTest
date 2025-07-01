@@ -1,74 +1,16 @@
-name: Sync Latest Release (any type) to pre Branch
+- name: 获取最新 release（不区分 pre 或正式版）
+  id: fetch_release
+  run: |
+    release_data=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases \
+      | jq '[.[] | select(.draft == false)] | sort_by(.published_at) | reverse | .[0]')
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * 2"  # 每周二凌晨 2 点运行一次
+    echo "🔍 获取到的 Release:"
+    echo "$release_data" | jq '.tag_name, .published_at, .name'
 
-jobs:
-  update-pre-branch:
-    runs-on: ubuntu-latest
+    url=$(echo "$release_data" | jq -r '.assets[] | select(.name == "worker.js") | .browser_download_url')
+    version=$(echo "$release_data" | jq -r '.tag_name')
+    body=$(echo "$release_data" | jq -r '.body')
 
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout pre 分支
-        uses: actions/checkout@v3
-        with:
-          ref: pre
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 安装 jq 和 wget
-        run: sudo apt-get update && sudo apt-get install -y jq wget
-
-      - name: 获取最新 release（不区分 pre 或正式版）
-        id: fetch_release
-        run: |
-          release_data=$(curl -s https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases \
-            | jq 'sort_by(.created_at) | reverse | .[0]')
-
-          url=$(echo "$release_data" | jq -r '.assets[] | select(.name == "worker.js") | .browser_download_url')
-          version=$(echo "$release_data" | jq -r '.tag_name')
-          body=$(echo "$release_data" | jq -r '.body')
-
-          echo "url=$url" >> $GITHUB_OUTPUT
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "$body" > release_body.txt
-
-      - name: 检查是否为新版本
-        id: check_version
-        run: |
-          if [[ -f _version.txt ]] && [[ "$(cat _version.txt)" == "${{ steps.fetch_release.outputs.version }}" ]]; then
-            echo "is_new=false" >> $GITHUB_OUTPUT
-          else
-            echo "is_new=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: 下载 _worker.js 和写入版本号及更新日志
-        if: steps.check_version.outputs.is_new == 'true'
-        run: |
-          wget -q "${{ steps.fetch_release.outputs.url }}" -O _worker.js
-          echo "${{ steps.fetch_release.outputs.version }}" > _version.txt
-          echo -e "\n---" >> update.log
-          echo "Version: ${{ steps.fetch_release.outputs.version }}" >> update.log
-          echo "Updated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> update.log
-          echo -e "Release Notes:" >> update.log
-          cat release_body.txt >> update.log
-
-      - name: 设置 Git 身份
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: 检查是否有更改并提交
-        if: steps.check_version.outputs.is_new == 'true'
-        run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "✅ 没有变化，跳过提交"
-          else
-            echo "🚀 检测到文件变化，准备提交"
-            git commit -m "Update _worker.js to version ${{ steps.fetch_release.outputs.version }} with changelog"
-            git push origin pre
-          fi
+    echo "url=$url" >> $GITHUB_OUTPUT
+    echo "version=$version" >> $GITHUB_OUTPUT
+    echo "$body" > release_body.txt
