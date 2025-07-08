@@ -83,3 +83,12 @@ Starting from version 1.12.0 sing-box added tls fragment to its core. Panel is n
 ## ⚙️ Bug fixes and Improvements
 
 - Fixed Russia routing rules bug.
+
+---
+Version: v3.3.7
+Updated at: 2025-07-08 03:13:56 UTC
+Release Notes:
+# ⚙️ Bug fixes and Improvements
+
+- Fixed Warp PRO subscription #895.
+- Updated docs.
