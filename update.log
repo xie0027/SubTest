@@ -110,3 +110,12 @@ Release Notes:
 # ⚙️ Bug fixes and Improvements
 
 - Fixed Proxy IPv4 with custom port
+
+---
+Version: v3.3.16
+Updated at: 2025-08-18 10:49:10 UTC
+Release Notes:
+# ⚙️ Bug fixes and Improvements
+
+- Fixed Fingerprint not applied to Normal configs
+- Display errors in same page
