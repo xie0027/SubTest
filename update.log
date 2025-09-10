@@ -163,3 +163,12 @@ Release Notes:
 
 - Refactored
 - Try to fix 1101 #987
+
+---
+Version: v3.4.8
+Updated at: 2025-09-10 16:14:36 UTC
+Release Notes:
+# ⚙️ Bug fixes and Improvements
+
+- Refactored, much less worker Error rate
+- Fixed Clash NAT64 #1016
