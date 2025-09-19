@@ -1,0 +1,11 @@
+
+---
+Version: v3.5.2
+Updated at: 2025-09-19 10:53:53 UTC
+Release Notes:
+# ⚙️ Bug fixes and Improvements
+
+- Revised sing-box DNS syntax due to recent changes
+- Validate panel remote DNS entry
+- Updated docs
+- Bug fix, NPM package removed #1045
