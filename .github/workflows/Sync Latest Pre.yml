@@ -2,8 +2,8 @@ name: Sync Latest Release (any type) to pre Branch
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * 2"  # 每周二凌晨 2 点运行一次
+  #schedule:
+    #- cron: "0 2 * * 2"  # 每周二凌晨 2 点运行一次
 
 jobs:
   update-pre-branch:
